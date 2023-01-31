@@ -3,15 +3,14 @@ package com.spring.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -21,9 +20,9 @@ public class MyConfigSecurity {
 
     @Bean
     //Authentication
-    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
+    public UserDetailsService userDetailsService() {
 
-        UserDetails userDetails = User.withUsername("Ajit")
+      /*  UserDetails userDetails = User.withUsername("Ajit")
                 .password(encoder.encode("Ajit"))
                 .roles("ADMIN")
                 .build();
@@ -36,7 +35,9 @@ public class MyConfigSecurity {
                 .roles("USER")
                 .build();
 
-        return new InMemoryUserDetailsManager(userDetails, userDetails1, userDetails2);
+        return new InMemoryUserDetailsManager(userDetails, userDetails1, userDetails2);*/
+
+        return new UserInfoUserDetailsService();
     }
 
     @Bean
@@ -46,10 +47,10 @@ public class MyConfigSecurity {
                 .csrf()
                 .disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/home/admin", "/products/welcome")
+                .requestMatchers("/home/admin", "/products/new", "/products/welcome")
                 .permitAll()
-               // .anyRequest()
-               // .authenticated()
+                // .anyRequest()
+                // .authenticated()
                 .and()
                 .authorizeHttpRequests().requestMatchers("/home/**", "/products/**")
                 .authenticated()
@@ -62,6 +63,14 @@ public class MyConfigSecurity {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setUserDetailsService(userDetailsService());
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        return daoAuthenticationProvider;
     }
 }
 
